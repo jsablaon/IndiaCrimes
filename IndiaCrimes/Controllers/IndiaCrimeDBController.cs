@@ -5,44 +5,33 @@ using IndiaCrimes.Models;
 
 namespace IndiaCrimes.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class IndiaCrimeDBController : ControllerBase
     {
         // GET: api/<IndiaCrimeDBController>
         [HttpGet]
+        [ActionName("Get")]
         public List<string> Get()
         {
             // TODO: main queries
             return new List<string> { "india", "Cimes", "table" };
         }
 
-        // GET api/<IndiaCrimeDBController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("{pYear}")]
+        [ActionName("GetNumberOfProperties")]
+        public int GetNumberOfProperties(int pYear)
         {
-            return "value";
-        }
-
-        [HttpGet]
-        //[ActionName("GetNumberOfProperties")]
-        public List<string> GetNumberOfProperties(int pYear)
-        {
-            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetNumberOfProperties: ${pYear}+++++++++++++++++++++++++++++");
+            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetNumberOfProperties: {pYear}+++++++++++++++++++++++++++++");
             // TODO: main queries
-            return new List<string> { "india", "Cimes", "table" };
+            return pYear;
         }
 
-        //[HttpGet]
-        //[ActionName("GetValueProperties")]
-        //[HttpGet("{IndiaCrimeDB}/GetValueProperties")]
-        //[Route("GetValueProperties/{id:string}")]
-
-        [Route("IndiaCrimesDB/GetValueProperties")]
-        [HttpGet]
+        [HttpGet("{pLocation}")]
+        [ActionName("GetValueProperties")]
         public int GetValueProperties(string pLocation)
         {
-            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetValueProperties: ${pLocation}+++++++++++++++++++++++++++++");
+            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetValueProperties: {pLocation} +++++++++++++++++++++++++++++");
             // TODO: main queries
             var context = new IndiaCrimeDBContext();
             var totalQuery = (from eachOrder in context.CrimeFactTables
@@ -52,13 +41,13 @@ namespace IndiaCrimes.Controllers
             return totalQuery;
         }
 
-        [HttpGet]
-        //[ActionName("GetGenderData")]
-        public List<string> GetGenderData(int pGenderId)
+        [HttpGet("{pGenderId}")]
+        [ActionName("GetGenderData")]
+        public int GetGenderData(int pGenderId)
         {
-            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetGenderData: ${pGenderId}+++++++++++++++++++++++++++++");
+            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetGenderData: {pGenderId}+++++++++++++++++++++++++++++");
             // TODO: main queries
-            return new List<string> { pGenderId.ToString() };
+            return pGenderId;
         }
 
         // POST api/<IndiaCrimeDBController>

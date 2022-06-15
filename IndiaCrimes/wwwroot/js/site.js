@@ -89,26 +89,31 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function getNumberOfProperties() {
-    let selectStore = document.getElementById('storeSelect');
-    let storevalue = selectStore.options[selectStore.selectedIndex].value;
+async function getNumberOfProperties() {
+    console.log(`+++++++++++++++++++++++++++getNumberOfProperties++++++++++++++++++++++++++`)
+    document.getElementById('numberPropertiesStolenDescription').innerHTML = `getting the data...`;
+    await sleep(2000);
+
+    let yearSelectElement = document.getElementById("yearSelect");
+    let yearValue = yearSelectElement.options[yearSelectElement.selectedIndex].value;
 
     // https://stackoverflow.com/questions/9499794/single-controller-with-multiple-get-methods-in-asp-net-web-api
-    $.getJSON(`api/OrdersDB/GetTotalSale/${storevalue}`).done(function (data) {
+    $.getJSON(`api/IndiaCrimeDB/GetNumberOfProperties/${yearValue}`).done(function (data) {
         console.log(`data is ${data}`);
-        $('#totalDescription').text(`that store sold $${data}.`);
+        $('#numberPropertiesStolenDescription').text(`that store sold $${data}.`);
     }).fail(function (jqXHR, textStatus, error) {
-        $('#totalDescription').text(`error: ${error}`);
+        $('#numberPropertiesStolenDescription').text(`error: ${error}`);
     });
 }
 
-function getValueProperties() {
+async function getValueProperties() {
     console.log(`+++++++++++++++++++++++++++getvalueProperties++++++++++++++++++++++++++`)
     document.getElementById('valuePropertiesStolenDescription').innerHTML = `getting the data...`;
-    //await sleep(2000);
+    await sleep(2000);
 
     let locationSelectElement = document.getElementById("locationSelect");
     let locationValue = locationSelectElement.options[locationSelectElement.selectedIndex].value;
+
     $.getJSON(`api/IndiaCrimeDB/GetValueProperties/${locationValue}`).done(function (data) {
         console.log(data)
         let valuePropertiesStolenDescription = document.getElementById('valuePropertiesStolenDescription');
@@ -127,10 +132,14 @@ function getValueProperties() {
 }
 
 async function getGenderData() {
+    console.log(`+++++++++++++++++++++++++++getGenderData++++++++++++++++++++++++++`)
     document.getElementById('getGenderDescription').innerHTML = `getting the data...`;
     await sleep(2000);
 
-    $.getJSON(`api/IndiaCrimeDB/GetGenderData`).done(function (data) {
+    let genderSelectElement = document.getElementById("genderSelect");
+    let genderValue = genderSelectElement.options[genderSelectElement.selectedIndex].value;
+
+    $.getJSON(`api/IndiaCrimeDB/GetGenderData/${genderValue}`).done(function (data) {
         console.log(data)
         let totalStoreDataDescription = document.getElementById('getGenderDescription');
         let txt = `<strong>StoreID | Count</strong><br>`;
