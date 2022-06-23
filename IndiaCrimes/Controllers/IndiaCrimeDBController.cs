@@ -74,7 +74,7 @@ namespace IndiaCrimes.Controllers
                                         recoveredPropertyTable.PrecoVal
                                     }).Distinct().ToList();
 
-            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++joined Table count distinct: {joinedFactTables.Count}+++++++++++++++++++++++++++++");
+           // System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++joined Table count distinct: {joinedFactTables.Count}+++++++++++++++++++++++++++++");
 
             //--1.In the year 2007 what was the number of property that was stolen(and recovered) in realtion to criminals 16 and under
             var numberStolen = joinedFactTables.OrderByDescending(x => x.PstoleVal).Where(x => x.Year == pYear && x.AsixtnUid != 1).Distinct().ToList();
@@ -104,14 +104,14 @@ namespace IndiaCrimes.Controllers
             try
             {
                 totalNumberStolen = numberStolen.AsEnumerable().Sum(x => x.Pstole);
-            } catch(Exception err)
+            } catch (Exception err)
             {
                 System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++ERROR: {err.Message}+++++++++++++++++++++++++++++");
             }
 
             var top5Stolen = numberStolen.OrderByDescending(x => x.PstoleVal).Distinct().Select(x => new { x.PstoleVal, x.Location }).Distinct().Take(5);
 
-            foreach(var item in top5Stolen)
+            foreach (var item in top5Stolen)
             {
                 System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++top 5 stolen val: {item.PstoleVal}, {item.Location}+++++++++++++++++++++++++++++");
             }
@@ -120,7 +120,7 @@ namespace IndiaCrimes.Controllers
             try
             {
                 totalNumberRecovered = numberStolen.Sum(x => x.Precov);
-            } catch(Exception err)
+            } catch (Exception err)
             {
                 System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++ERROR: {err.Message}+++++++++++++++++++++++++++++");
             }
@@ -138,6 +138,112 @@ namespace IndiaCrimes.Controllers
             return totalValue;
         }
 
+        [HttpGet("{pLocation}")]
+        [ActionName("GetValueRecov")]
+        public List<Object> GetValueRecov(string pLocation) //tak
+        {
+            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetValueProperties: {pLocation} +++++++++++++++++++++++++++++");
+
+            //only look for this location and then in the querey you use select new for this location
+
+
+            var context = new IndiaCrimeDBContext();
+            // ref: https://stackoverflow.com/questions/5307731/linq-to-sql-multiple-joins-on-multiple-columns-is-this-possible
+            var joinedFactAndRecov = (from crime in context.CrimeFactTables
+                                      where crime.Location == pLocation
+                                      join recov in context.PropertyRecoveredTables on crime.PrecovId equals recov.PrecovId
+                                      join criminal in context.CriminalFactTables on crime.Location equals criminal.Location
+                                      where criminal.Year >= 2001
+                                      join age in context.EighteenThirtyTables on criminal.AeightntothirtId equals age.AeightntothirtId
+                                      select new
+                                      {
+                                          crime.Year,
+                                          crime.Location,
+                                          recov.PrecoVal,
+                                          age.Aeightntothirt
+                                      }).Distinct().ToList();
+
+
+            //In Punjab(location) what was the value of property that was stolen(and recovered in relation to number crimnals 18 to 30\
+            //join the joined fact tables with the property stolen and property recovered tables
+            //two different buttons in the html
+
+            //var valueStolen = from x in joinedFactTables
+            //                  where x.Location == "Punjab" && x.AeightntothirtId >= 1   
+            //                  select x;
+            //var valueStolenn = valueStolen.Distinct().ToList();
+
+
+            var numberRecov = joinedFactAndRecov.Where(x => x.Location == pLocation && x.Year >= 2001).Distinct().Take(5).ToList();
+            //var numberRecov = Recov.Distinct().ToList();
+
+            foreach (var row in numberRecov)
+
+            {
+                System.Diagnostics.Debug.Write($"PrecoVal: {row.PrecoVal} |");
+                System.Diagnostics.Debug.Write($"AeightntothirtId: {row.Aeightntothirt} | ");
+
+            }
+            //System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++number of stolen count in a year: {numberRecov.Count}+++++++++++++++++++++++++++++");
+
+            // TODO: main queries
+            //var context = new IndiaCrimeDBContext();
+            //var totalQuery = (from eachOrder in context.CrimeFactTables
+            //                  where eachOrder.Location == pLocation
+            //                  select eachOrder.PrecovId).Sum();
+
+            //return totalQuery;
+            //int x = numberStolen.Length;
+            //Array[] list = new Array[numberStolen.Length](numberStolen.ToArray());
+
+            //return list;
+            List<Object> returnV = new List<Object>() { numberRecov };
+            return returnV;
+        }
+        [HttpGet("{pLocation}")]
+        [ActionName("GetValueStole")]
+
+        public List<Object> GetValueStole(string pLocation) //tak
+        {
+
+            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetValueProperties: {pLocation} +++++++++++++++++++++++++++++");
+
+            //only look for this location and then in the querey you use select new for this location
+
+            //    //set as global value
+
+
+            var context = new IndiaCrimeDBContext();
+
+            //// ref: https://stackoverflow.com/questions/5307731/linq-to-sql-multiple-joins-on-multiple-columns-is-this-possible
+            var joined = (from crime in context.CrimeFactTables
+                          where crime.Location == pLocation
+                          join stole in context.PropertyStolenTables on crime.PstoleId equals stole.PstoleId
+                          join criminal in context.CriminalFactTables on crime.Location equals criminal.Location
+                          where criminal.Year >= 2001
+                          join age in context.EighteenThirtyTables on criminal.AeightntothirtId equals age.AeightntothirtId
+                          select new
+                          {
+                              crime.Year,
+                              crime.Location,
+                              stole.PstoleVal,
+                              age.Aeightntothirt
+                          }).Distinct().ToList();
+
+
+            var numberStole = joined.Where(x => x.Location == pLocation && x.Year >= 2001).Distinct().Take(5).ToList();
+            //var numberStole = Stole.Distinct().ToList();
+            foreach (var row in numberStole)
+
+            {
+                System.Diagnostics.Debug.Write($"PstoleVal: {row.PstoleVal} |");
+                System.Diagnostics.Debug.Write($"AeightntothirtId: {row.Aeightntothirt} | ");
+
+            }
+            //System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++number of stolen count in a year: {numberStole.Count}+++++++++++++++++++++++++++++");
+            List<Object> returnV = new List<Object>() { numberStole };
+            return returnV;
+        }
         [HttpGet("{pLocation}")]
         [ActionName("GetValueProperties")]
         public int GetValueProperties(string pLocation)

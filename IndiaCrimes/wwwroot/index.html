@@ -21,15 +21,26 @@
 
     <br /><br /><br /><br />
 
-    <div>
-        <h2>Value of properties stolen and recovered in a given location with criminals age 18-30</h2>
-        Select location:
-        <select id="locationSelect"></select>
-        <br />
-        <input type="button" value="Get Data" onclick="getValueProperties();" />
-        <br />
-        <p id="valuePropertiesStolenDescription" />
-    </div>
+                      <div>
+                          <h2>Top 5 values of properties stolen and recovered in a given location by criminals age 18-30</h2>
+                          Select location:
+
+                          <select id="locationSelect"></select>
+                          <br />
+                          
+                          <br />
+                          <div data-role="fieldcontain">
+                              <fieldset data-role="controlgroup">
+                                  <legend>Choose property recovered or property stolen:</legend>
+                                  <input type="radio" id="radio-choice-recov" value="choice-1" onclick="getValueRecov();" />
+                                  <label for="radio-choice-1">Value Property Recovered</label>
+
+                                  <input type="radio" id="radio-choice-Stole" value="choice-2" onclick="getValueStole();">
+                                  <label for="radio-choice-2">Value Property Stolen</label>
+                              </fieldset>
+                          </div>
+                          <p id="valuePropertiesStolenDescription" />
+                      </div>
 
     <br /><br /><br /><br />
 
