@@ -96,11 +96,24 @@ async function getNumberOfProperties() {
 
     let yearSelectElement = document.getElementById("yearSelect");
     let yearValue = yearSelectElement.options[yearSelectElement.selectedIndex].value;
+    let description = document.getElementById('numberPropertiesStolenDescription')
 
     // https://stackoverflow.com/questions/9499794/single-controller-with-multiple-get-methods-in-asp-net-web-api
     $.getJSON(`api/IndiaCrimeDB/GetNumberOfProperties/${yearValue}`).done(function (data) {
-        console.log(`data is ${data}`);
-        $('#numberPropertiesStolenDescription').text(`that store sold $${data}.`);
+        let txt = `Total number of stolen properties: ${data[0]}<br><br>`
+        txt += `&emsp;<strong>Value &emsp;&nbsp;| Location</strong><br>`
+
+        data[1].forEach((element) => {
+            console.log(element)
+            txt += `${element['pstoleVal']} | ${element['location']}<br>`
+        })
+
+        txt += `<br>Total number of properties recovered: ${data[2]}<br><br>&emsp;<strong>Value &emsp;&nbsp;| Location</strong><br>`
+        data[3].forEach((element) => {
+            console.log(element)
+            txt += `${element['precoVal']} | ${element['location']}<br>`
+        })
+        description.innerHTML = txt;
     }).fail(function (jqXHR, textStatus, error) {
         $('#numberPropertiesStolenDescription').text(`error: ${error}`);
     });
@@ -124,8 +137,6 @@ async function getValueProperties() {
         })
         console.log(`txt = ${txt}`)
         totalStoreDataDescription.innerHTML = txt;
-        //$('#totalStoreDataDescription').innerHTML = "something else";
-        //$('#totalStoreDataDescription').text(`DONE GETTING DATA === ${data}`);
     }).fail(function (jqXHR, textStatus, error) {
         $('#valuePropertiesStolenDescription').text(`error: ${error}`);
     });
@@ -136,21 +147,20 @@ async function getGenderData() {
     document.getElementById('getGenderDescription').innerHTML = `getting the data...`;
     await sleep(2000);
 
-    let genderSelectElement = document.getElementById("genderSelect");
-    let genderValue = genderSelectElement.options[genderSelectElement.selectedIndex].value;
+    // female
+    let genderValue = 1
+    console.log(genderValue, "gender value")
 
     $.getJSON(`api/IndiaCrimeDB/GetGenderData/${genderValue}`).done(function (data) {
-        console.log(data)
-        let totalStoreDataDescription = document.getElementById('getGenderDescription');
-        let txt = `<strong>StoreID | Count</strong><br>`;
-        data.forEach((element) => {
-            console.log(`StoreID = ${element['storeID']} | Count = ${element['count']}`)
-            txt += `=  ${element['storeID']} | ${element['count']}<br>`
+        console.log(data, "+++data+++")
+        let genderDescription = document.getElementById('getGenderDescription');
+        let txt = `<strong># stolen properties | Location&emsp; | Year </strong><br>`
+
+        data[0].forEach((element) => {
+            console.log(element)
+            txt += `&emsp;&nbsp;&emsp;&nbsp;&emsp;${element['pstole']}&emsp;&nbsp;&emsp;&emsp;| &emsp;${element['location']}&emsp; | ${element['year']}<br>`
         })
-        console.log(`txt = ${txt}`)
-        totalStoreDataDescription.innerHTML = txt;
-        //$('#totalStoreDataDescription').innerHTML = "something else";
-        //$('#totalStoreDataDescription').text(`DONE GETTING DATA === ${data}`);
+        genderDescription.innerHTML = txt;
     }).fail(function (jqXHR, textStatus, error) {
         $('#getGenderDescription').text(`error: ${error}`);
     });

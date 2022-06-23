@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using IndiaCrimes.Models;
+using System.Numerics;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -18,45 +19,9 @@ namespace IndiaCrimes.Controllers
             return new List<string> { "india", "Cimes", "table" };
         }
 
-        //[HttpGet("{pYear}")]
-        //[ActionName("GetNumberOfProperties")]
-        //public int GetNumberOfProperties(int pYear)
-        //{
-        //    var context = new IndiaCrimeDBContext();
-        //    // filter by year
-        //    var numberPropertyStolen = (from eachItem in context.CrimeFactTables
-        //                               where eachItem.Year == pYear
-        //                               select eachItem).ToList();
-        //    System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++numberPropertyStolen: {numberPropertyStolen}+++++++++++++++++++++++++++++");
-
-        //    var propertyStolen = new List<PropertyStolenTable>();
-        //    // join crime fact table to property stolen table
-        //    foreach (var item in numberPropertyStolen)
-        //    {
-        //        System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++eachItemPStolenID: {item.PstoleId}+++++++++++++++++++++++++++++");
-
-        //        propertyStolen.Add((from eachItem in context.PropertyStolenTables
-        //                             where eachItem.PstoleId == item.PstoleId
-        //                             select eachItem).SingleOrDefault());
-        //    }
-        //    System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++eachItemPStolenID count: {propertyStolen.Count}+++++++++++++++++++++++++++++");
-
-        //    // add pstole col
-        //    var numberStolen = propertyStolen.Sum(x => x.Pstole);
-        //    System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++totalStolenSum: {numberStolen}+++++++++++++++++++++++++++++");
-
-
-
-
-
-        //    System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetNumberOfProperties: {pYear}+++++++++++++++++++++++++++++");
-        //    // TODO: main queries
-        //    return pYear;
-        //}
-
         [HttpGet("{pYear}")]
         [ActionName("GetNumberOfProperties")]
-        public int GetNumberOfProperties(int pYear)
+        public List<Object> GetNumberOfProperties(int pYear)
         {
             var context = new IndiaCrimeDBContext();
 
@@ -86,6 +51,10 @@ namespace IndiaCrimes.Controllers
                                     on crimeFactTable.Year equals criminalFactTable.Year
                                     join criminalFactTableLocation in context.CriminalFactTables
                                     on crimeFactTable.Location equals criminalFactTableLocation.Location
+                                    join stolenValueTable in context.PropertyStolenTables
+                                    on crimeFactTable.PstoleId equals stolenValueTable.PstoleId
+                                    join recoveredPropertyTable in context.PropertyRecoveredTables
+                                    on crimeFactTable.PrecovId equals recoveredPropertyTable.PrecovId
                                     select new
                                     {
                                         crimeFactTable.CrimeId,
@@ -98,12 +67,18 @@ namespace IndiaCrimes.Controllers
                                         criminalFactTable.AsixtnUid,
                                         criminalFactTable.AeightntothirtId,
                                         criminalFactTable.AthirttofithId,
-                                        criminalFactTable.AfithabovId
+                                        criminalFactTable.AfithabovId,
+                                        stolenValueTable.Pstole,
+                                        stolenValueTable.PstoleVal,
+                                        recoveredPropertyTable.Precov,
+                                        recoveredPropertyTable.PrecoVal
                                     }).Distinct().ToList();
 
-            //System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++joined Table count distinct: {joinedFactTables.Count}+++++++++++++++++++++++++++++");
+            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++joined Table count distinct: {joinedFactTables.Count}+++++++++++++++++++++++++++++");
 
-            //foreach (var row in joinedFactTables)
+            //--1.In the year 2007 what was the number of property that was stolen(and recovered) in realtion to criminals 16 and under
+            var numberStolen = joinedFactTables.OrderByDescending(x => x.PstoleVal).Where(x => x.Year == pYear && x.AsixtnUid != 1).Distinct().ToList();
+            //foreach (var row in numberStolen)
             //{
             //    System.Diagnostics.Debug.Write($"crimeID: {row.CrimeId} | ");
             //    System.Diagnostics.Debug.Write($"location: {row.Location} | ");
@@ -115,55 +90,52 @@ namespace IndiaCrimes.Controllers
             //    System.Diagnostics.Debug.Write($"AsixtnUid: {row.AsixtnUid} | ");
             //    System.Diagnostics.Debug.Write($"AeightntothirtId: {row.AeightntothirtId} | ");
             //    System.Diagnostics.Debug.Write($"AthirttofithId: {row.AthirttofithId} | ");
-            //    System.Diagnostics.Debug.WriteLine($"AfithabovId: {row.AfithabovId}");
+            //    System.Diagnostics.Debug.Write($"AfithabovId: {row.AfithabovId} | ");
+            //    System.Diagnostics.Debug.Write($"PstoleId: {row.PstoleId} | ");
+            //    System.Diagnostics.Debug.Write($"Pstole: {row.Pstole} | ");
+            //    System.Diagnostics.Debug.Write($"PstoleVal: {row.PstoleVal} |");
+            //    System.Diagnostics.Debug.Write($"PrecovId: {row.PrecovId} | ");
+            //    System.Diagnostics.Debug.Write($"Precov: {row.Precov} | ");
+            //    System.Diagnostics.Debug.WriteLine($"PrecoVal: {row.PrecoVal}");
             //}
+            //System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++number of stolen count in a year: {numberStolen.Count}+++++++++++++++++++++++++++++");
 
-            var numberStolen = joinedFactTables.Where(x => x.Year == pYear).Distinct().ToList();
-            foreach (var row in numberStolen)
+            Int64 totalNumberStolen = 0;
+            try
             {
-                System.Diagnostics.Debug.Write($"crimeID: {row.CrimeId} | ");
-                System.Diagnostics.Debug.Write($"location: {row.Location} | ");
-                System.Diagnostics.Debug.Write($"year: {row.Year} | ");
-                System.Diagnostics.Debug.Write($"precovId: {row.PrecovId} | ");
-                System.Diagnostics.Debug.Write($"pstolenId: {row.PstoleId} | ");
-                System.Diagnostics.Debug.Write($"criminalId: {row.CriminalId} | ");
-                System.Diagnostics.Debug.Write($"genderId: {row.GenderId} | ");
-                System.Diagnostics.Debug.Write($"AsixtnUid: {row.AsixtnUid} | ");
-                System.Diagnostics.Debug.Write($"AeightntothirtId: {row.AeightntothirtId} | ");
-                System.Diagnostics.Debug.Write($"AthirttofithId: {row.AthirttofithId} | ");
-                System.Diagnostics.Debug.WriteLine($"AfithabovId: {row.AfithabovId}");
+                totalNumberStolen = numberStolen.AsEnumerable().Sum(x => x.Pstole);
+            } catch(Exception err)
+            {
+                System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++ERROR: {err.Message}+++++++++++++++++++++++++++++");
             }
-            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++number of stolen count in a year: {numberStolen.Count}+++++++++++++++++++++++++++++");
 
-            // filter by year
-            //var numberPropertyStolen = (from eachItem in context.CrimeFactTables
-            //                            where eachItem.Year == pYear
-            //                            select eachItem).ToList();
-            //System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++numberPropertyStolen: {numberPropertyStolen}+++++++++++++++++++++++++++++");
+            var top5Stolen = numberStolen.OrderByDescending(x => x.PstoleVal).Distinct().Select(x => new { x.PstoleVal, x.Location }).Distinct().Take(5);
 
-            //var propertyStolen = new List<PropertyStolenTable>();
-            //// join crime fact table to property stolen table
-            //foreach (var item in numberPropertyStolen)
-            //{
-            //    System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++eachItemPStolenID: {item.PstoleId}+++++++++++++++++++++++++++++");
+            foreach(var item in top5Stolen)
+            {
+                System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++top 5 stolen val: {item.PstoleVal}, {item.Location}+++++++++++++++++++++++++++++");
+            }
 
-            //    propertyStolen.Add((from eachItem in context.PropertyStolenTables
-            //                        where eachItem.PstoleId == item.PstoleId
-            //                        select eachItem).SingleOrDefault());
-            //}
-            //System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++eachItemPStolenID count: {propertyStolen.Count}+++++++++++++++++++++++++++++");
+            Int64 totalNumberRecovered = 0;
+            try
+            {
+                totalNumberRecovered = numberStolen.Sum(x => x.Precov);
+            } catch(Exception err)
+            {
+                System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++ERROR: {err.Message}+++++++++++++++++++++++++++++");
+            }
 
-            //// add pstole col
-            //var numberStolen = propertyStolen.Sum(x => x.Pstole);
-            //System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++totalStolenSum: {numberStolen}+++++++++++++++++++++++++++++");
+            var top5Recovered = numberStolen.OrderByDescending(x => x.PrecoVal).Distinct().Select(x => new { x.PrecoVal, x.Location }).Distinct().Take(5);
 
+            List<Object> totalValue = new List<Object>()
+            {
+                totalNumberStolen,
+                top5Stolen,
+                totalNumberRecovered,
+                top5Recovered
+            };
 
-
-
-
-            System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetNumberOfProperties: {pYear}+++++++++++++++++++++++++++++");
-            // TODO: main queries
-            return pYear;
+            return totalValue;
         }
 
         [HttpGet("{pLocation}")]
@@ -207,53 +179,43 @@ namespace IndiaCrimes.Controllers
 
         [HttpGet("{pGenderId}")]
         [ActionName("GetGenderData")]
-        public int GetGenderData(int pGenderId)
+        public List<Object> GetGenderData(int pGenderId)
         {
+            //---3.Which location had the least number of property stolen in realtion to how many female criminals were in the area.
             System.Diagnostics.Debug.WriteLine($"++++++++++++++++++++++GetGenderData: {pGenderId}+++++++++++++++++++++++++++++");
 
             var context = new IndiaCrimeDBContext();
             // ref: https://stackoverflow.com/questions/5307731/linq-to-sql-multiple-joins-on-multiple-columns-is-this-possible
-            var joinedFactTables = (from crimeFactTable in context.CrimeFactTables
-                                    join criminalFactTable in context.CriminalFactTables
-                                    on crimeFactTable.Year equals criminalFactTable.Year
-                                    join criminalFactTableLocation in context.CriminalFactTables
-                                    on crimeFactTable.Location equals criminalFactTableLocation.Location
+            var joinedFactTables = (from criminalFactTable in context.CriminalFactTables
+                                    where criminalFactTable.GenderId == pGenderId
+                                    join crimeFactTable in context.CrimeFactTables
+                                    on new { criminalFactTable.Location, criminalFactTable.Year } equals new { crimeFactTable.Location, crimeFactTable.Year }
+                                    join genderTable in context.GenderTables
+                                    on criminalFactTable.GenderId equals genderTable.GenderId
+                                    join pStolenTable in context.PropertyStolenTables
+                                    on crimeFactTable.PstoleId equals pStolenTable.PstoleId
                                     select new
                                     {
-                                        crimeFactTable.CrimeId,
-                                        crimeFactTable.Location,
-                                        crimeFactTable.Year,
-                                        crimeFactTable.PrecovId,
-                                        crimeFactTable.PstoleId,
-                                        criminalFactTable.CriminalId,
-                                        criminalFactTable.GenderId,
-                                        criminalFactTable.AsixtnUid,
-                                        criminalFactTable.AeightntothirtId,
-                                        criminalFactTable.AthirttofithId,
-                                        criminalFactTable.AfithabovId
+                                        criminalFactTable.Location,
+                                        criminalFactTable.Year,
+                                        genderTable.Gender,
+                                        genderTable.GenderId,
+                                        pStolenTable.Pstole,
+                                        pStolenTable.PstoleVal
                                     }).Distinct().ToList();
 
 
-            // TODO: main queries
-            return pGenderId;
+            //var leastPropertyStolenGender = joinedFactTables.Where(x => x.GenderId == pGenderId).Distinct().OrderBy(x => x.Pstole).Distinct().Take(5);
+            var leastPropertyStolenGender = joinedFactTables.Distinct().OrderBy(x => x.Pstole).Where(x => x.GenderId == pGenderId).Distinct().Take(5);
+            //var leastPropertyStolenGender = joinedFactTables.OrderBy(x => x.Precov).Distinct().Take(5);
+
+            foreach (var item in leastPropertyStolenGender)
+            {
+                System.Diagnostics.Debug.WriteLine($"number of stolen prop: {item.Pstole} | location: {item.Location} | value: {item.PstoleVal} | gender: {item.Gender} | year: {item.Year} ");
+            }
+
+            List<Object> returnVal = new List<object>() { leastPropertyStolenGender };
+            return returnVal; ;
         }
-
-        // POST api/<IndiaCrimeDBController>
-        //[HttpPost]
-        //public void Post([FromBody] string value)
-        //{
-        //}
-
-        //// PUT api/<IndiaCrimeDBController>/5
-        //[HttpPut("{id}")]
-        //public void Put(int id, [FromBody] string value)
-        //{
-        //}
-
-        //// DELETE api/<IndiaCrimeDBController>/5
-        //[HttpDelete("{id}")]
-        //public void Delete(int id)
-        //{
-        //}
     }
 }
